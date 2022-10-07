@@ -14,7 +14,7 @@
  #                    distributed within the CImg package.
  #
  #  Licenses        : This file is 'dual-licensed', you have to choose one
- #                    of the two licenses below to apply.
+ #                    of the two licenses below to apply.font
  #
  #                    CeCILL-C
  #                    The CeCILL-C license is close to the GNU LGPL.
