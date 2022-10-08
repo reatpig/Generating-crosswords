@@ -4,7 +4,7 @@
 #include <cmath>
 #include <mutex>
 #include <stdlib.h>
-#include <stdlib>
+
 void insertWord(std::vector<std::string>& crossword, const std::string& word, location loc) {
 	bool vertical = !loc.horizontal;
 	for (int i = 0; i < word.size(); ++i) {
@@ -102,7 +102,7 @@ float rating(std::vector<std::string>& crossword) {
 		for (int r = 0; r < crossword[0].size(); ++r)
 			if (crossword[i][r] == ' ')
 				count_ += 1;
-	count_ *= atan(relationship);
+	//count_ *= atan(relationship);
 	return count_;
 }
 
@@ -111,7 +111,9 @@ std::mutex g_lock;
 void generateCrossword(std::vector <std::string> const & allWords,
 	std::multimap<int, std::vector<std::string> >&allCrossword, size_t howMany )
 {
-	srand(time(NULL));
+	auto thd_id = std::this_thread::get_id();
+	std::mt19937_64 rand_engine{ std::hash<std::thread::id> {}(std::this_thread::get_id()) };
+	std::uniform_real_distribution<double> rand_distr{ 0, RAND_MAX};
 
 	unsigned int gridSize = countGridSize(allWords);
 	unsigned int gridX{ gridSize }, gridY{ gridSize };
@@ -121,7 +123,7 @@ void generateCrossword(std::vector <std::string> const & allWords,
 	std::vector <location> locations(allWords.size(), location{ 0,0,true });
 
 	//Use the random long word how central
-	size_t startWord = rand() % (allWords.size() / 4);
+	size_t startWord =(int) rand_distr(rand_engine) % (allWords.size() / 4);
 	if (allWords[startWord].size() < gridX) {
 		locations[startWord] = location{ (gridX - allWords[startWord].size()) / 2, gridY / 2, true };
 		insertWord(crossword, allWords[startWord], locations[startWord]);
@@ -147,8 +149,8 @@ void generateCrossword(std::vector <std::string> const & allWords,
 				wordIndex = 0;
 				if (!change) {
 					//Start over with new central word
-					d
-					start+=std::rand rand_r()%4;
+					
+					start+= (int)rand_distr(rand_engine)%4;
 					if (start >= allWords.size())
 						start = 0;
 					startOver(allWords, wordsUsedBool, crossword, locations, gridY, gridX, start, wordsLeft);
@@ -160,7 +162,7 @@ void generateCrossword(std::vector <std::string> const & allWords,
 					if (wordsUsedBool[usedWord])
 						for (int i = 0; i < allWords[wordIndex].size() && !flag; ++i)//Looping through the letters of an unused word
 							for (int r = 0; r < allWords[usedWord].size() && !flag; ++r)//Looping through the letters of an inserted word
-								if (allWords[wordIndex][i] == allWords[usedWord][r] && (float)rand() / RAND_MAX < 0.8) {//Some random to generate various crosswords
+								if (allWords[wordIndex][i] == allWords[usedWord][r] && (float)rand_distr(rand_engine) / RAND_MAX < 0.8) {//Some random to generate various crosswords
 									bool hor = locations[usedWord].horizontal;
 									unsigned int startX = locations[usedWord].startX + r * locations[usedWord].horizontal - i * !locations[usedWord].horizontal;
 									unsigned int startY = locations[usedWord].startY + r * !locations[usedWord].horizontal - i * locations[usedWord].horizontal;

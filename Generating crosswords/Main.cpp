@@ -18,7 +18,6 @@ int main(int argc, char* argv[]) {
 	//Russian language
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
-	
 	setlocale(LC_ALL, "Russian");
 
 	std::string s;
@@ -43,10 +42,29 @@ int main(int argc, char* argv[]) {
 	std::sort(allWords.begin(), allWords.end(),
 		[](const std::string& a, const std::string& b)
 		{ return a.length() > b.length(); });
+	
+	unsigned long const hardware_threads =
+		std::thread::hardware_concurrency();
+	unsigned long  num_threads =
+		hardware_threads != 0 ? hardware_threads : 2;
+	unsigned long howCrossword = 50;
+		unsigned long const crossPerThread = (float)howCrossword / (num_threads-2);
+	std::vector<std::thread> threads(num_threads - 1);
+	for (unsigned long i = 0; i < (num_threads - 2); ++i)
+	{	
+		srand(i);
+		threads[i] = std::thread(generateCrossword, std::ref(allWords), std::ref(allCrossword), crossPerThread);
+	}
+	size_t last = howCrossword - crossPerThread * (num_threads - 2);
+	threads[threads.size() - 1] = std::thread(generateCrossword, std::ref(allWords), std::ref(allCrossword), last);
+	for (auto& entry : threads)
+		if(entry.joinable())
+		entry.join();
 
     generateCrossword( allWords,allCrossword, 50);
 	std::cout << std::endl;
-	render(allCrossword.begin()->second);
+	render(allCrossword.rbegin()->second);
+
 	return 0;
 }
 std::vector <std::string>& wordFromFile(char * path, std::vector < std::string>& allWords) {
